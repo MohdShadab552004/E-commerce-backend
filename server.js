@@ -26,9 +26,11 @@ app.get("/shopping",async (req,res) => {
     if(req.cookies.token !== undefined){
         let data = jwt.verify(req.cookies.token,process.env.SECRET)
         let userdata = await UserModelSingup.findOne({username : data.username})
-        console.log(userdata.cart);
-        
-        res.json({data: userdata.cart,login:true, length: userdata.cart.length});
+        let total = 0;
+        for (const key in userdata.cart) {
+            total += userdata.cart[key].price; 
+        }   
+        res.json({data: userdata.cart, login:true, length: userdata.cart.length, Total:total});
     }else{
         res.json({login:false});
     }
@@ -38,13 +40,18 @@ app.post("/shoppingAdd",async (req,res) => {
     if(req.cookies.token !== undefined){
         let data = jwt.verify(req.cookies.token,process.env.SECRET)
         const {username} = data
-        const {image,description,price,color,contity} = req.body
+        const {image,description,price,color,contity,id} = req.body
         const user = await UserModelSingup.findOneAndUpdate(
             {username},
-            { $push : {cart : {image,description,price,color,contity}}},
+            { $push : {cart : {id,image,description,price,color,contity}}},
             {new: true}
         )
-        res.json({status :true});
+        let total = 0;
+        for (const key in user.cart) {
+            total += user.cart[key].price; 
+        }   
+
+        res.json({status :true ,data: user.cart, length : user.cart.length, Total : total});
     }else{
         res.json(false);
     }
@@ -59,15 +66,13 @@ app.post("/Contact",async (req,res) => {
         subject: Subject,
         message : Message
     })
-    console.log("object created", user); 
-    res.send(user) 
+    res.json({status:true}) 
 })
 
 app.post("/Subcribe",async (req,res) => {
     const subscriber = await UserModelSubcribe.create({
         email: req.body.Email
     })
-    console.log(subscriber)
 })
 app.post("/Login", async (req, res) => {
     const { Username, password } = req.body;
@@ -81,15 +86,11 @@ app.post("/Login", async (req, res) => {
     if (!isValid) {
         return res.status(401).json({ message: "Invalid password" });
     }
-    console.log("login ho gya ");
-    
     // Generate JWT token
     let token = await jwt.sign({ username: user.username }, "secret");
 
     // Set the cookie with the token
     res.cookie("token", token);
-    console.log(req.cookies.token);
-    
     // Send success response
     res.json({ message: "successful"});
 });
@@ -103,8 +104,37 @@ app.post("/Singup",async (req,res) => {
         email,
         password : hashpassword
     })
-    console.log(SingupUser);
     res.send({status:true})  
+})
+
+app.delete("/item/:id",async (req,res) => {
+    
+    if(req.cookies.token !== undefined){
+        let data = jwt.verify(req.cookies.token,process.env.SECRET)
+        console.log(data.username);
+        
+        const Username = data.username;
+        const user = await UserModelSingup.findOne({username : Username });
+
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            
+            // Filter out the item with the provided id
+            user.cart = user.cart.filter(item => item.id.toString() !== req.params.id);
+
+           // Save the updated user document
+            await user.save();
+            
+            let total = 0;
+            for (const key in user.cart) {
+                total += user.cart[key].price; 
+            }   
+            // Respond with success
+            res.json({ success: true, message: "Item deleted successfully", cart: user.cart, length:user.cart.length ,Total : total});
+    }else{
+        res.json(false);
+    }
 })
 
 
