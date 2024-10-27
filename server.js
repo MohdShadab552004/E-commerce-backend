@@ -1,5 +1,5 @@
 import express from 'express'
-import bcrypt from 'bcrypt'
+import bcrypt, { genSalt } from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import cors from 'cors'
 import bodyParser from 'body-parser'
@@ -52,9 +52,7 @@ app.get("/logout", (req, res) => {
     }
 });
 const sendEmail = async (recipientEmail, otp) => {
-    console.log("send kar raha hu email pe ");
-    let testAccount = await nodemailer.createTestAccount();
-    
+
     const transporter = nodemailer.createTransport({
         service:"gmail",
         port: 465,
@@ -66,7 +64,10 @@ const sendEmail = async (recipientEmail, otp) => {
     });
 
     const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from:{
+            name : 'CollStuff',
+            address:process.env.EMAIL_USER,
+            },
         to: recipientEmail,
         subject: 'Your OTP Code',
         text: `Your OTP code is: ${otp}`,
@@ -74,27 +75,62 @@ const sendEmail = async (recipientEmail, otp) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log('OTP sent successfully!');
     } catch (error) {
         console.error('Error sending email:', error);
     }
 };
 app.post("/forget",async (req,res) => {
     try{
-        console.log("api hit ");
-        const email = req.body;
-        const user = UserModelSingup.findOne({email});
+        const email = req.body.email;
+        const user = await  UserModelSingup.findOne({email});
         if(!user){
-            console.log("user not found");
-            
+            console.log("user not found"); 
             res.json({found:false})
         }
        
         const otp = Math.floor(100000 + Math.random() * 900000);
         await sendEmail(email,otp)
-        res.status(200).json({message:`OTP sent to ${email}: ${otp}`});
+        const usernew = await UserModelSingup.findOneAndUpdate(
+            { email },
+            { otp : otp },
+            { new: true }
+        );
+        console.log(usernew);
+        res.status(200).json({message:`OTP sent to ${email}: ${otp}`,found : true});
     }catch(err){
-        console.error("Error in /forget:", error);
+        console.error("Error in /forget:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+})
+app.post("/verify",async (req,res) => {
+    try{
+        const {otp,email} = req.body;
+        const user = await UserModelSingup.findOne({email});
+        if(Number(otp) === user.otp){
+            res.json({verify : true,});
+        }else{
+            res.json({verify : false});
+        }
+
+    }catch(err){
+        console.error("Error in /verify:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+})
+app.post("/updatepassword",async (req,res) => {
+    try{
+        const {password,email} = req.body;
+        const salt = await bcrypt.genSalt(10);
+        const hashpassword = await bcrypt.hash(password, salt);        
+        const user = await UserModelSingup.findOneAndUpdate(
+            {email},
+            {hashpassword},
+            {new:true}
+        )
+        
+        res.json({successfull:true})
+    }catch(err){
+        console.error("Error in /shoppingAdd:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 })
@@ -151,8 +187,6 @@ app.post("/order",async (req,res) => {
         if (req.cookies.token !== undefined) {
             let data = jwt.verify(req.cookies.token, process.env.SECRET);
             const { username } = data;
-            console.log(req.body,"this req");
-            
             const {Area_building,House_no,email,name,pincode,id,mode,items,total} = req.body;
 
             const user = await UserModelSingup.findOneAndUpdate(
@@ -160,7 +194,6 @@ app.post("/order",async (req,res) => {
                 { $push: { order: { id,Area_building,House_no,email,name,pincode,mode,items,total} } },
                 { new: true }
             );
-            console.log(user);
             
             res.json({status: true});
         } else {
@@ -239,7 +272,7 @@ app.post("/Singup", async (req, res) => {
             email,
             password: hashpassword
         });
-
+        
         let token = await jwt.sign({ username }, process.env.SECRET);
         res.cookie("token", token);
 

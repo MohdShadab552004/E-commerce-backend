@@ -7,7 +7,7 @@ const UserContactSchema =  mongoose.Schema({
     contact:Number,
     subject:String,
     message:String,
-    
+   
 })
 const subcriberSchema = mongoose.Schema({
     email : String
@@ -25,6 +25,10 @@ const signupSchema =  mongoose.Schema({
         type:Array,
         default: [],
         // date : Date.now()
+    },
+    otp : {
+        type:Number,
+        default : null
     }
 })
 
