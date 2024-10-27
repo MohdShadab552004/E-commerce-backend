@@ -20,6 +20,11 @@ const signupSchema =  mongoose.Schema({
     cart :{
         type: Array,
         default: []
+    },
+    order:{
+        type:Array,
+        default: [],
+        // date : Date.now()
     }
 })
 
