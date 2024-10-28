@@ -13,7 +13,7 @@ const port = process.env.PORT || 3000;
 dotenv.config();
 
 app.use(cors({
-    origin: 'http://localhost:5173',  
+    origin: 'https://collstuff.netlify.app',  
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS', 'DELETE'], // Include DELETE method
     allowedHeaders: ['Content-Type', 'Authorization'],
