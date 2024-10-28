@@ -14,7 +14,8 @@ dotenv.config();
 
 app.use(cors({
     origin: process.env.URL,  
-    credentials: true  
+    credentials: true ,
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(cookieParser());
 app.use(bodyParser.json());
