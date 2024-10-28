@@ -239,7 +239,6 @@ app.post("/subcribe", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     try {
-        console.log("logining start");
         
         const { Username, password } = req.body;
         const user = await UserModelSingup.findOne({ username: Username });
@@ -281,7 +280,7 @@ app.post("/singup", async (req, res) => {
         });
         
         let token = await jwt.sign({ username }, process.env.SECRET);
-        res.cookie("token", token);
+        res.cookie("token", token,{httpOnly:true,secure:true,sameSite: 'None'});
 
         res.json({ login: true, message: "Signup successful" });
     } catch (error) {
