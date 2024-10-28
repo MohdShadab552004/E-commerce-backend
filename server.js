@@ -15,10 +15,13 @@ dotenv.config();
 app.use(cors({
     origin: process.env.URL,  
     credentials: true ,
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.options('*', cors()); // Preflight request handling
+
 
 app.get("/", (req, res) => {
     res.send("hello");
