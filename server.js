@@ -251,7 +251,7 @@ app.post("/Login", async (req, res) => {
 
         // Generate JWT token
         let token = await jwt.sign({ username: user.username }, process.env.SECRET);
-        res.cookie("token", token);
+        res.cookie("token", token, {httpOnly:true,secure:true,sameSite: 'None'});
         res.json({ login: true, message: "Login successful" });
     } catch (error) {
         console.error("Error in /Login:", error);
