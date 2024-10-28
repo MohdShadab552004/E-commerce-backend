@@ -237,6 +237,8 @@ app.post("/subcribe", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     try {
+        console.log("logining start");
+        
         const { Username, password } = req.body;
         const user = await UserModelSingup.findOne({ username: Username });
 
