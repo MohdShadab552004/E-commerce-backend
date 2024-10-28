@@ -208,7 +208,7 @@ app.post("/order",async (req,res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 })
-app.post("/Contact", async (req, res) => {
+app.post("/contact", async (req, res) => {
     try {
         const { Name, Email, Contact, Subject, Message } = req.body;
         const user = await UserModelContact.create({
@@ -225,7 +225,7 @@ app.post("/Contact", async (req, res) => {
     }
 });
 
-app.post("/Subcribe", async (req, res) => {
+app.post("/subcribe", async (req, res) => {
     try {
         const subscriber = await UserModelSubcribe.create({ email: req.body.Email });
         res.json({ subscribe: true });
@@ -235,7 +235,7 @@ app.post("/Subcribe", async (req, res) => {
     }
 });
 
-app.post("/Login", async (req, res) => {
+app.post("/login", async (req, res) => {
     try {
         const { Username, password } = req.body;
         const user = await UserModelSingup.findOne({ username: Username });
@@ -259,7 +259,7 @@ app.post("/Login", async (req, res) => {
     }
 });
 
-app.post("/Singup", async (req, res) => {
+app.post("/singup", async (req, res) => {
     try {
         const { username, email, password } = req.body;
         const isuser = await UserModelSingup.findOne({ username });
