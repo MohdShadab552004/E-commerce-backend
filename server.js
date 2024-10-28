@@ -13,11 +13,12 @@ const port = process.env.PORT || 3000;
 dotenv.config();
 
 app.use(cors({
-    origin: 'https://collstuff.netlify.app',  
-    credentials: true ,
-    methods: ['GET', 'POST', 'OPTIONS'],
+    origin: 'http://localhost:5173',  
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS', 'DELETE'], // Include DELETE method
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 app.use(cookieParser());
 app.use(bodyParser.json());
 
@@ -46,7 +47,11 @@ app.get("/shopping", async (req, res) => {
 
 app.get("/logout", (req, res) => {
     try {
-        res.clearCookie("token");
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+        });
         res.json({ logout: true });
     } catch (error) {
         console.error("Error in /logout:", error);
@@ -148,7 +153,6 @@ app.post("/shoppingAdd", async (req, res) => {
                 { $push: { cart: { id, image, description, price, color, contity } } },
                 { new: true }
             );
-            console.log(user);
             
             let total = 0;
             for (const key in user.cart) {
