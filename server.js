@@ -13,7 +13,7 @@ const port = process.env.PORT || 3000;
 dotenv.config();
 
 app.use(cors({
-    origin: 'http://localhost:5173',  
+    origin: process.env.URL,  
     credentials: true  
 }));
 app.use(cookieParser());
@@ -248,7 +248,6 @@ app.post("/Login", async (req, res) => {
         // Generate JWT token
         let token = await jwt.sign({ username: user.username }, process.env.SECRET);
         res.cookie("token", token);
-
         res.json({ login: true, message: "Login successful" });
     } catch (error) {
         console.error("Error in /Login:", error);
